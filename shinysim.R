@@ -82,7 +82,7 @@ ui <- fluidPage(
                   label = "Number of trials",
                   min = 1,
                   max = 10,
-                  value = 1),
+                  value = 1)
 
     ),
     

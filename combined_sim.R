@@ -37,7 +37,7 @@ sim_plot_base = function(){
 
 sim_plot_line = function(spp, ext, D_start = 50, t_max = 100, D_max = 10^8, i_max = 10^3){
   data = sim_path(spp, ext, D_start, t_max, D_max, i_max)
-  geom_line(data = data, aes(x = t, y = D), color = "red")
+  geom_line(data = data, aes(x = t, y = D), color = "red", na.rm = TRUE)
 }
 
 multiplot = function(spp, ext, D_start, ntrials){
@@ -270,7 +270,7 @@ density_plot = function(n0,t_series,spp,ext,n_max,interpolate=FALSE, contours = 
   # print(data$p)
   # print(log(abs(data)))
   plt = ggplot(data,aes(x = t, y = n))
-  plt = plt + geom_raster(aes(fill = log(p+0.001)),interpolate=interpolate)
+  plt = plt + geom_raster(aes(fill = log(p)),interpolate=interpolate)
   plt = plt + scale_fill_gradient()
   if(contours){
     plt = plt + geom_contour(aes(z = p),colour = "white",breaks = breaks,
@@ -285,10 +285,15 @@ density_plot = function(n0,t_series,spp,ext,n_max,interpolate=FALSE, contours = 
   plt
 }
 
-
-
-# Initialize plot ----
-plt = sim_plot_base
+# Combined Plot ----
+pdf_line_plot = function(n0,spp,ext,ntrials){
+  base = density_plot(n0, seq(0.1,10,0.1), spp, ext, 100)
+  for (trial in 1:ntrials){
+    base = base + sim_plot_line(spp, ext, D_start = n0)
+  }
+  base = base + xlim(0,10) + ylim(0,100)
+  return(base)
+}
 
 # Shiny ----
 ui <- fluidPage(
@@ -321,7 +326,7 @@ ui <- fluidPage(
                   label = "Number of trials",
                   min = 1,
                   max = 10,
-                  value = 1),
+                  value = 1)
 
     ),
     
@@ -339,7 +344,7 @@ server <- function(input, output) {
   
   output$simulation_plot = renderPlot(
     
-    multiplot(spp = input$spp, ext = input$ext, D_start = input$n0, ntrials = input$n_trials)
+    pdf_line_plot(input$n0, input$spp, input$ext, input$n_trials)
     
   )
   

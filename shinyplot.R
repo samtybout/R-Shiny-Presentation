@@ -117,7 +117,7 @@ pnt_B = function(n0,n,t,spp,ext){
   # Equations from Raup 1985
   
   # Equation A13
-  alpha = (ext*(exp((spp-ext)*t)-1))/(spp*exp((spp-ext)*t)-ext)
+  alpha = (ext*(expm1((spp-ext)*t)))/(spp*exp((spp-ext)*t)-ext)
   
   # Equation A14
   if(n == 0){
@@ -128,13 +128,18 @@ pnt_B = function(n0,n,t,spp,ext){
   else{
     beta = alpha * spp / ext
     j = 0:min(n0,n)
-    return(sum(
-      choose(n0,j) * choose(n0+n-j-1,n0-1) * 
+    p = sum(
+      choose(n0, j) * choose(n0+n-j-1, n0-1) * 
         (alpha^(n0-j)) * (beta^(n-j)) * ((1-alpha-beta)^j)
-    ))
+    )
+    if (p < 0 | p > 1){
+      return(0)
+    }
+    else{
+      return(p)
+    }
   }
 }
-
 p_dist = function(n0,max,t,spp,ext){
   p = c()
   d = 0:max
@@ -220,10 +225,11 @@ density_plot = function(n0,t_series,spp,ext,n_max,interpolate=FALSE, contours = 
       data = rbind(data, data.frame(t = time, n = n, p = pnt(n0,n,time,spp,ext)))
     }
   }
+  data$p[data$p == 0] = min(data$p)
   # print(data$p)
   # print(log(abs(data)))
   plt = ggplot(data,aes(x = t, y = n))
-  plt = plt + geom_raster(aes(fill = log(p+0.001)),interpolate=interpolate)
+  plt = plt + geom_raster(aes(fill = log(p)),interpolate=interpolate)
   plt = plt + scale_fill_gradient()
   if(contours){
     plt = plt + geom_contour(aes(z = p),colour = "white",breaks = breaks,
@@ -318,7 +324,7 @@ server <- function(input, output) {
   
   output$projection_plot = renderPlot(
     
-    density_plot(input$n0,seq(0.1,30),input$spp,input$ext,50,contours = FALSE, interpolate = TRUE)
+    density_plot(input$n0,seq(0.1,30),input$spp,input$ext,50,contours = FALSE, interpolate = FALSE)
     
   )
   
