@@ -2,7 +2,7 @@
 lineplot = function(slope, intercept, color){
   x = seq(0,10,0.1)
   y = slope*x + intercept
-  plot(x, y, type = "l", col = color)
+  plot(x, y, type = "l", col = color, lwd = 3)
 }
 
 # Shiny ----
